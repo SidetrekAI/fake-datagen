@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "fake-datagen"
+version = "0.1.0"
+description = ""
+authors = ["Seungchan Lee <seunggs@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+numpy = "^1.26.4"
+pyarrow = "^16.0.0"
+pyiceberg = "^0.6.0"
+numba = "^0.59.1"
+polars = "^0.20.23"
+mypy = "^1.10.0"
+ray = "^2.20.0"
+duckdb = "^0.10.2"
+pandas = "^2.2.2"
+
+
+[tool.poetry.group.dev.dependencies]
+mimesis = "^16.0.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
