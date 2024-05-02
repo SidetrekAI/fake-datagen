@@ -186,12 +186,14 @@ def gen_rand_dataset(tables: list[Table], target: Optional[Target] = None, targe
 
     for table in tables:
         pa_table = gen_rand_pa_table(table["name"], tables)
+        outdir = target_config.get("outdir", "") if target_config else ""
+        print('outdir:', outdir)
 
         if target == "parquet":
-            filepath = target_config.get("filepath") if target_config else f"{table['name']}.parquet"
+            filepath = f"{outdir}/{table['name']}.parquet"
             pq.write_table(pa_table, filepath)
         elif target == "csv":
-            filepath = target_config.get("filepath") if target_config else f"{table['name']}.csv"
+            filepath = f"{outdir}/{table['name']}.csv"
             pcsv.write_csv(pa_table, filepath)
         elif target == "iceberg":
             raise NotImplementedError("Not yet implemented")

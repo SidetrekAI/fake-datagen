@@ -6,7 +6,7 @@ from examples.examples import get_ex_tables  # type: ignore
 from utils import duckdb_conn, mim  # type: ignore
 
 start = time.time()
-ex_tables = get_ex_tables(num_records=100000)
+ex_tables = get_ex_tables(num_records=1000000)
 
 # pa_tables = gen_rand_pa_tables(ex_tables)
 # pa_sample_table = pa_tables[0]
@@ -16,7 +16,7 @@ ex_tables = get_ex_tables(num_records=100000)
 # results2 = duckdb_conn.execute("select * from pa_sample_table2 limit 10").arrow()
 # print(f"pa_sample_table2={results2}")
 
-gen_rand_dataset(ex_tables, target="csv", target_config={"filepath": "data/csv"})
+gen_rand_dataset(ex_tables, target="csv", target_config={"dirpath": "data"})
 
 # result = gen_mimesis_data(100, mim.text.word)
 # print(result)

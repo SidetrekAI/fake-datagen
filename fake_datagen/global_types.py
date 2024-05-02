@@ -43,14 +43,15 @@ class Table(TypedDict):
 
 
 class ParquetTargetConfig(TypedDict):
-    filepath: str
+    outdir: str
 
 
 class CSVTargetConfig(TypedDict):
-    filepath: str
+    outdir: str
 
 
 class IcebergTargetConfig(TypedDict):
+    outdir: str
     s3_bucket: str
     rest_catalog_uri: str
     rest_catalog_name: str
