@@ -14,7 +14,6 @@ NOTE: The ones with `WARNING: SLOW!!!` should never be used for performance test
       Only use these for generating small datasets for demo purposes.
 """
 
-
 rng = np.random.default_rng(seed=42)
 
 
