@@ -49,40 +49,62 @@ def gen_rand_categories(
     categories: list, size: int, p: list[float] | None = None, dist: str | None = None
 ) -> np.ndarray:
     np_categories = np.array(categories)
+    num_categories = len(categories)
     if dist is not None:
         if dist == "normal":
             loc = p[0] if p and len(p) > 0 else 0.5
             scale = p[1] if p and len(p) > 1 else 0.1
             values = rng.normal(loc=loc, scale=scale, size=size)
-            indices = np.digitize(values, bins=np.linspace(0, 1, len(categories) + 1)) - 1
+            values = (values - values.min()) / (values.max() - values.min())  # Normalize to [0, 1]
+            indices = (values * num_categories).astype(int)
+            indices = np.clip(indices, 0, num_categories - 1)
+        
         elif dist == "beta":
             a = p[0] if p and len(p) > 0 else 2.0
             b = p[1] if p and len(p) > 1 else 5.0
             values = rng.beta(a=a, b=b, size=size)
-            indices = np.digitize(values, bins=np.linspace(0, 1, len(categories) + 1)) - 1
+            indices = (values * num_categories).astype(int)
+            indices = np.clip(indices, 0, num_categories - 1)
+        
         elif dist == "geometric":
             prob = p[0] if p and len(p) > 0 else 0.5
             indices = rng.geometric(p=prob, size=size) - 1
-            indices = np.clip(indices, 0, len(categories) - 1)
+            indices = np.clip(indices, 0, num_categories - 1)
+        
         elif dist == "exponential":
             scale = p[0] if p and len(p) > 0 else 1.0
             values = rng.exponential(scale=scale, size=size)
-            indices = np.digitize(values, bins=np.linspace(0, max(values), len(categories))) - 1
+            values = (values - values.min()) / (values.max() - values.min())  # Normalize to [0, 1]
+            indices = (values * num_categories).astype(int)
+            indices = np.clip(indices, 0, num_categories - 1)
+        
         elif dist == "uniform":
             low = p[0] if p and len(p) > 0 else 0.0
             high = p[1] if p and len(p) > 1 else 1.0
             values = rng.uniform(low=low, high=high, size=size)
-            indices = np.digitize(values, bins=np.linspace(low, high, len(categories) + 1)) - 1
+            
+            # Normalize values to [0, 1]
+            normalized_values = (values - low) / (high - low)
+            
+            # Scale to range [0, num_categories - 1]
+            indices = (normalized_values * num_categories).astype(int)
+            
+            # Ensure indices are within valid range
+            indices = np.clip(indices, 0, num_categories - 1)
+        
         elif dist == "poisson":
             lam = p[0] if p and len(p) > 0 else 1.0
             indices = rng.poisson(lam=lam, size=size)
-            indices = np.clip(indices, 0, len(categories) - 1)
+            indices = np.clip(indices, 0, num_categories - 1)
+        
         elif dist == "lognormal":
             mean = p[0] if p and len(p) > 0 else 0.0
             sigma = p[1] if p and len(p) > 1 else 1.0
             values = rng.lognormal(mean=mean, sigma=sigma, size=size)
             values = (values - values.min()) / (values.max() - values.min())  # Normalize to [0, 1]
-            indices = np.digitize(values, bins=np.linspace(0, 1, len(categories) + 1)) - 1
+            indices = (values * num_categories).astype(int)
+            indices = np.clip(indices, 0, num_categories - 1)
+        
         else:
             raise ValueError(f"Unsupported distribution type: {dist}")
     else:
