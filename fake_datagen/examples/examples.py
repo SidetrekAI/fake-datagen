@@ -12,7 +12,10 @@ def get_ex_tables(num_records: int) -> list[Table]:
             "num_records": num_records,
             "schema": [
                 {"name": "order_id", "type": "id"},
-                {"name": "created_at", "type": "timestamp", "start": "2022-01-01", "range_in_days": 365 * 2},
+                {"name": "created_at_uniform", "type": "timestamp", "start": "2022-01-01", "range_in_days": 365 * 2, "dist": "uniform"},
+                {"name": "created_at_normal", "type": "timestamp", "start": "2022-01-01", "range_in_days": 365 * 2, "dist": "normal"},
+                {"name": "created_at_positive", "type": "timestamp", "start": "2022-01-01", "range_in_days": 365 * 2, "dist": "positively_skewed"},
+                {"name": "created_at_negative", "type": "timestamp", "start": "2022-01-01", "range_in_days": 365 * 2, "dist": "negatively_skewed"},
                 {"name": "qty", "type": "int", "low": 1, "high": 10},
                 {"name": "product_id", "type": "id", "fkey": {"table": "products", "id_field": "id"}},
                 {"name": "customer_id", "type": "id", "fkey": {"table": "customers", "id_field": "id"}},
@@ -41,6 +44,8 @@ def get_ex_tables(num_records: int) -> list[Table]:
                     "name": "traffic_source",
                     "type": "category",
                     "categories": ["Search", "Direct", "Email", "Social", "PPC"],
+                    "dist": "beta",
+                    "p": [2.0, 5.0],
                 },
                 {
                     "name": "referrer",
@@ -89,3 +94,4 @@ def get_ex_tables(num_records: int) -> list[Table]:
             ],
         },
     ]
+
