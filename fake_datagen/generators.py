@@ -46,41 +46,43 @@ def gen_rand_strs(size: int, str_len: int = 10) -> np.ndarray:
 
 # Generates `size` categories with various distributions
 def gen_rand_categories(
-    categories: list, size: int, p: list[float] | None = None, dist: str | None = None
+    categories: list, size: int,
+    p: list[float] | None = None, 
+    dist: str | None = None,
+    loc: float = 0.5, scale: float = 0.1,  # Parameters for normal distribution
+    a: float = 2.0, b: float = 5.0,  # Parameters for beta distribution
+    prob: float = 0.5,  # Parameter for geometric distribution
+    exp_scale: float = 1.0,  # Parameter for exponential distribution
+    low: float = 0.0, high: float = 1.0,  # Parameters for uniform distribution
+    lam: float = 1.0,  # Parameter for poisson distribution
+    mean: float = 0.0, sigma: float = 1.0  # Parameters for lognormal distribution
 ) -> np.ndarray:
     np_categories = np.array(categories)
     num_categories = len(categories)
+    
     if dist is not None:
         if dist == "normal":
-            loc = p[0] if p and len(p) > 0 else 0.5
-            scale = p[1] if p and len(p) > 1 else 0.1
             values = rng.normal(loc=loc, scale=scale, size=size)
             values = (values - values.min()) / (values.max() - values.min())  # Normalize to [0, 1]
             indices = (values * num_categories).astype(int)
             indices = np.clip(indices, 0, num_categories - 1)
         
         elif dist == "beta":
-            a = p[0] if p and len(p) > 0 else 2.0
-            b = p[1] if p and len(p) > 1 else 5.0
             values = rng.beta(a=a, b=b, size=size)
             indices = (values * num_categories).astype(int)
             indices = np.clip(indices, 0, num_categories - 1)
         
         elif dist == "geometric":
-            prob = p[0] if p and len(p) > 0 else 0.5
             indices = rng.geometric(p=prob, size=size) - 1
             indices = np.clip(indices, 0, num_categories - 1)
         
         elif dist == "exponential":
-            scale = p[0] if p and len(p) > 0 else 1.0
-            values = rng.exponential(scale=scale, size=size)
+            values = rng.exponential(scale=exp_scale, size=size)
             values = (values - values.min()) / (values.max() - values.min())  # Normalize to [0, 1]
             indices = (values * num_categories).astype(int)
             indices = np.clip(indices, 0, num_categories - 1)
         
         elif dist == "uniform":
-            low = p[0] if p and len(p) > 0 else 0.0
-            high = p[1] if p and len(p) > 1 else 1.0
             values = rng.uniform(low=low, high=high, size=size)
             
             # Normalize values to [0, 1]
@@ -93,13 +95,10 @@ def gen_rand_categories(
             indices = np.clip(indices, 0, num_categories - 1)
         
         elif dist == "poisson":
-            lam = p[0] if p and len(p) > 0 else 1.0
             indices = rng.poisson(lam=lam, size=size)
             indices = np.clip(indices, 0, num_categories - 1)
         
         elif dist == "lognormal":
-            mean = p[0] if p and len(p) > 0 else 0.0
-            sigma = p[1] if p and len(p) > 1 else 1.0
             values = rng.lognormal(mean=mean, sigma=sigma, size=size)
             values = (values - values.min()) / (values.max() - values.min())  # Normalize to [0, 1]
             indices = (values * num_categories).astype(int)
