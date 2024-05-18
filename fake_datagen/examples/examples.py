@@ -1,4 +1,4 @@
-from global_types import Table  # type: ignore
+from type_defs import Table  # type: ignore
 from utils import mim  # type: ignore
 
 
@@ -39,17 +39,13 @@ def get_ex_tables(num_records: int) -> list[Table]:
                     "name": "payment_method",
                     "type": "category",
                     "categories": ["credit_card", "debit_card", "paypal", "cash"],
-                    "dist": "beta",
-                    "a": 2.0, 
-                    "b": 5.0,
+                    "dist": {"type": "beta", "a": 2.0, "b": 5.0},
                 },
                 {
                     "name": "traffic_source",
                     "type": "category",
                     "categories": ["Search", "Direct", "Email", "Social", "PPC"],
-                    "dist": "normal",
-                    "loc": 0.5,
-                    "scale": 0.2,
+                    "dist": {"type": "normal", "loc": 0.5, "scale": 0.2},
                 },
                 {
                     "name": "referrer",
@@ -81,9 +77,7 @@ def get_ex_tables(num_records: int) -> list[Table]:
                         "Sports & Outdoor",
                         "Office Supply",
                     ],
-                    "dist": "uniform",
-                    "low": 0.0,
-                    "high": 1.0,
+                    "dist": {"type": "uniform", "loc": 0.0, "scale": 1.0},
                 },
                 {"name": "price", "type": "int", "low": 500, "high": 20000},
                 {"name": "description", "type": "mimesis", "mimesis_provider_fn": mim.text.title},

@@ -1,9 +1,9 @@
-from typing import Optional, Callable
+from typing import Optional, Callable, List
 import numpy as np
 import pyarrow as pa  # type: ignore
 import pyarrow.parquet as pq  # type: ignore
 import pyarrow.csv as pcsv  # type: ignore
-from global_types import Table, Target, TargetConfig  # type: ignore
+from type_defs import Table, Target, TargetConfig, Dist  # type: ignore
 from utils import schema_to_pa_schema, is_valid_field_type, is_valid_target  # type: ignore
 
 
@@ -46,43 +46,46 @@ def gen_rand_strs(size: int, str_len: int = 10) -> np.ndarray:
 
 # Generates `size` categories with various distributions
 def gen_rand_categories(
-    categories: list, size: int,
-    p: list[float] | None = None, 
-    dist: str | None = None,
-    loc: float = 0.5, scale: float = 0.1,  # Parameters for normal distribution
-    a: float = 2.0, b: float = 5.0,  # Parameters for beta distribution
-    prob: float = 0.5,  # Parameter for geometric distribution
-    exp_scale: float = 1.0,  # Parameter for exponential distribution
-    low: float = 0.0, high: float = 1.0,  # Parameters for uniform distribution
-    lam: float = 1.0,  # Parameter for poisson distribution
-    mean: float = 0.0, sigma: float = 1.0  # Parameters for lognormal distribution
+    categories: List[str], size: int,
+    p: Optional[List[float]] = None, 
+    dist: Optional[Dist] = None
 ) -> np.ndarray:
     np_categories = np.array(categories)
     num_categories = len(categories)
     
     if dist is not None:
-        if dist == "normal":
+        dist_type = dist.get("type")
+
+        if dist_type == "normal":
+            loc = dist.get("loc", 0.5)
+            scale = dist.get("scale", 0.1)
             values = rng.normal(loc=loc, scale=scale, size=size)
             values = (values - values.min()) / (values.max() - values.min())  # Normalize to [0, 1]
             indices = (values * num_categories).astype(int)
             indices = np.clip(indices, 0, num_categories - 1)
         
-        elif dist == "beta":
+        elif dist_type == "beta":
+            a = dist.get("a", 2.0)
+            b = dist.get("b", 5.0)
             values = rng.beta(a=a, b=b, size=size)
             indices = (values * num_categories).astype(int)
             indices = np.clip(indices, 0, num_categories - 1)
         
-        elif dist == "geometric":
+        elif dist_type == "geometric":
+            prob = dist.get("prob", 0.5)
             indices = rng.geometric(p=prob, size=size) - 1
             indices = np.clip(indices, 0, num_categories - 1)
         
-        elif dist == "exponential":
-            values = rng.exponential(scale=exp_scale, size=size)
+        elif dist_type == "exponential":
+            scale = dist.get("scale", 1.0)
+            values = rng.exponential(scale=scale, size=size)
             values = (values - values.min()) / (values.max() - values.min())  # Normalize to [0, 1]
             indices = (values * num_categories).astype(int)
             indices = np.clip(indices, 0, num_categories - 1)
         
-        elif dist == "uniform":
+        elif dist_type == "uniform":
+            low = dist.get("low", 0.0)
+            high = dist.get("high", 1.0)
             values = rng.uniform(low=low, high=high, size=size)
             
             # Normalize values to [0, 1]
@@ -94,18 +97,21 @@ def gen_rand_categories(
             # Ensure indices are within valid range
             indices = np.clip(indices, 0, num_categories - 1)
         
-        elif dist == "poisson":
+        elif dist_type == "poisson":
+            lam = dist.get("lam", 1.0)
             indices = rng.poisson(lam=lam, size=size)
             indices = np.clip(indices, 0, num_categories - 1)
         
-        elif dist == "lognormal":
+        elif dist_type == "lognormal":
+            mean = dist.get("mean", 0.0)
+            sigma = dist.get("sigma", 1.0)
             values = rng.lognormal(mean=mean, sigma=sigma, size=size)
             values = (values - values.min()) / (values.max() - values.min())  # Normalize to [0, 1]
             indices = (values * num_categories).astype(int)
             indices = np.clip(indices, 0, num_categories - 1)
         
         else:
-            raise ValueError(f"Unsupported distribution type: {dist}")
+            raise ValueError(f"Unsupported distribution type: {dist_type}")
     else:
         indices = rng.choice(len(categories), size=size, p=p)
 
