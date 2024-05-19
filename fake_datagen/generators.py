@@ -97,10 +97,10 @@ def gen_rand_pa_table(table_name: str, tables: list[Table]) -> pa.Table:
     for field in schema:
         if "fkey" in field:
             """
-            `fkey` fields require special treatment:
+            `fkey` fields require special treatment.
                 
-                Since ids are always incremental, we can infer the low and high value for generating
-                random integers for the fkey field.
+            Since ids are always incremental, we can infer the low and high value for generating
+            random integers for the fkey field.
             """
             fkey_table = next(
                 (t for t in tables if t["name"] == field["fkey"]["table"]), None

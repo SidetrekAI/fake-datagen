@@ -20,6 +20,7 @@ pandas = "^2.2.2"
 
 [tool.poetry.group.dev.dependencies]
 mimesis = "^16.0.0"
+treelib = "^1.7.0"
 
 [build-system]
 requires = ["poetry-core"]

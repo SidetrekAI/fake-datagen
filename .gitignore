@@ -161,3 +161,4 @@ cython_debug/
 /*.csv
 /*.parquet
 /data
+generate_sidetrek_tree.py
