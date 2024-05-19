@@ -1,41 +1,5 @@
 from typing import TypedDict, Optional, Literal, Callable, Union
 
-# Define the types for the configuration file
-class NormalDist(TypedDict, total=False):
-    type: Literal["normal"]
-    loc: float
-    scale: float
-
-class BetaDist(TypedDict, total=False):
-    type: Literal["beta"]
-    a: float
-    b: float
-
-class GeometricDist(TypedDict, total=False):
-    type: Literal["geometric"]
-    prob: float
-
-class ExponentialDist(TypedDict, total=False):
-    type: Literal["exponential"]
-    scale: float
-
-class UniformDist(TypedDict, total=False):
-    type: Literal["uniform"]
-    low: float
-    high: float
-
-class PoissonDist(TypedDict, total=False):
-    type: Literal["poisson"]
-    lam: float
-
-class LogNormalDist(TypedDict, total=False):
-    type: Literal["lognormal"]
-    mean: float
-    sigma: float
-
-Dist = Union[NormalDist, BetaDist, GeometricDist, ExponentialDist, UniformDist, PoissonDist, LogNormalDist]
-
-
 
 class Fkey(TypedDict):
     table: str
@@ -65,7 +29,9 @@ class Field(TypedDict):
     max: Optional[int]  # for numeric data
     p: Optional[list]  # probabiliy distribution for categorical data
     fkey: Optional[Fkey]
-    mimesis_provider_fn: Optional[Callable] # mimesis provider function for mimesis type data - e.g. `mim.address.address`
+    mimesis_provider_fn: Optional[
+        Callable
+    ]  # mimesis provider function for mimesis type data - e.g. `mim.address.address`
 
 
 class Schema(TypedDict):
@@ -96,3 +62,53 @@ class IcebergTargetConfig(TypedDict):
 
 Target = Literal["parquet", "csv", "iceberg"]
 TargetConfig = ParquetTargetConfig | CSVTargetConfig | IcebergTargetConfig
+
+
+# Distribution types
+
+
+class NormalDist(TypedDict):
+    type: Literal["normal"]
+    loc: Optional[float]
+    scale: Optional[float]
+
+
+class BetaDist(TypedDict):
+    type: Literal["beta"]
+    a: Optional[float]
+    b: Optional[float]
+
+
+class GeometricDist(TypedDict):
+    type: Literal["geometric"]
+    prob: Optional[float]
+
+
+class ExponentialDist(TypedDict):
+    type: Literal["exponential"]
+    scale: Optional[float]
+
+
+class PowerDist(TypedDict):
+    type: Literal["power"]
+    a: float | list[float]
+
+
+class UniformDist(TypedDict):
+    type: Literal["uniform"]
+    low: Optional[float]
+    high: Optional[float]
+
+
+class PoissonDist(TypedDict):
+    type: Literal["poisson"]
+    lam: Optional[float]
+
+
+class LogNormalDist(TypedDict):
+    type: Literal["lognormal"]
+    mean: Optional[float]
+    sigma: Optional[float]
+
+
+Dist = Union[NormalDist, BetaDist, GeometricDist, ExponentialDist, PowerDist, UniformDist, PoissonDist, LogNormalDist]

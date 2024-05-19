@@ -4,7 +4,7 @@ import pyarrow as pa  # type: ignore
 import pyarrow.parquet as pq  # type: ignore
 import pyarrow.csv as pcsv  # type: ignore
 from type_defs import Table, Target, TargetConfig, Dist  # type: ignore
-from utils import schema_to_pa_schema, is_valid_field_type, is_valid_target  # type: ignore
+from utils import schema_to_pa_schema, is_valid_field_type, is_valid_target, minmax_scaler  # type: ignore
 
 
 """
@@ -27,8 +27,22 @@ def gen_ids(size: int, start: int = 0) -> np.ndarray:
 
 
 # Generates `size` integers with uniform distribution
-def gen_rand_integers(low: int, high: int, size: int) -> np.ndarray:
-    return rng.integers(low=low, high=high, size=size)
+def gen_rand_integers(low: int, high: int, size: int, dist: Dist = None) -> np.ndarray:
+    if dist is None:
+        return rng.integers(low=low, high=high, size=size)
+    
+    dist_type = dist["type"]
+
+    if dist_type == "normal":
+        samples = rng.normal(loc=0, scale=1, size=size)
+        scaled_samples = minmax_scaler(samples, low, high)
+        return np.clip(scaled_samples, low, high).astype(int)
+    if dist_type == "power":
+        samples = rng.power(dist["a"], size=size)
+        scaled_samples = minmax_scaler(samples, low, high)
+        return np.clip(scaled_samples, low, high).astype(int)
+    else:
+        raise ValueError(f"Unsupported distribution type in gen_rand_integers: {dist_type}")
 
 
 # Generates `size` float with uniform distribution
@@ -46,29 +60,30 @@ def gen_rand_strs(size: int, str_len: int = 10) -> np.ndarray:
 
 # Generates `size` categories with various distributions
 def gen_rand_categories(
-    categories: List[str], size: int,
-    p: Optional[List[float]] = None, 
-    dist: Optional[Dist] = None
+    categories: list[str], 
+    size: int,
+    p: list[float] | None = None, 
+    dist: Dist = None
 ) -> np.ndarray:
     np_categories = np.array(categories)
     num_categories = len(categories)
     
     if dist is not None:
-        dist_type = dist.get("type")
+        dist_type = dist["type"]
 
         if dist_type == "normal":
             loc = dist.get("loc", 0.5)
             scale = dist.get("scale", 0.1)
-            values = rng.normal(loc=loc, scale=scale, size=size)
-            values = (values - values.min()) / (values.max() - values.min())  # Normalize to [0, 1]
-            indices = (values * num_categories).astype(int)
+            samples = rng.normal(loc=loc, scale=scale, size=size)
+            samples = (samples - samples.min()) / (samples.max() - samples.min())  # Normalize to [0, 1]
+            indices = (samples * num_categories).astype(int)
             indices = np.clip(indices, 0, num_categories - 1)
         
         elif dist_type == "beta":
             a = dist.get("a", 2.0)
             b = dist.get("b", 5.0)
-            values = rng.beta(a=a, b=b, size=size)
-            indices = (values * num_categories).astype(int)
+            samples = rng.beta(a=a, b=b, size=size)
+            indices = (samples * num_categories).astype(int)
             indices = np.clip(indices, 0, num_categories - 1)
         
         elif dist_type == "geometric":
@@ -78,21 +93,21 @@ def gen_rand_categories(
         
         elif dist_type == "exponential":
             scale = dist.get("scale", 1.0)
-            values = rng.exponential(scale=scale, size=size)
-            values = (values - values.min()) / (values.max() - values.min())  # Normalize to [0, 1]
-            indices = (values * num_categories).astype(int)
+            samples = rng.exponential(scale=scale, size=size)
+            samples = (samples - samples.min()) / (samples.max() - samples.min())  # Normalize to [0, 1]
+            indices = (samples * num_categories).astype(int)
             indices = np.clip(indices, 0, num_categories - 1)
         
         elif dist_type == "uniform":
             low = dist.get("low", 0.0)
             high = dist.get("high", 1.0)
-            values = rng.uniform(low=low, high=high, size=size)
+            samples = rng.uniform(low=low, high=high, size=size)
             
-            # Normalize values to [0, 1]
-            normalized_values = (values - low) / (high - low)
+            # Normalize samples to [0, 1]
+            normalized_samples = (samples - low) / (high - low)
             
             # Scale to range [0, num_categories - 1]
-            indices = (normalized_values * num_categories).astype(int)
+            indices = (normalized_samples * num_categories).astype(int)
             
             # Ensure indices are within valid range
             indices = np.clip(indices, 0, num_categories - 1)
@@ -105,27 +120,49 @@ def gen_rand_categories(
         elif dist_type == "lognormal":
             mean = dist.get("mean", 0.0)
             sigma = dist.get("sigma", 1.0)
-            values = rng.lognormal(mean=mean, sigma=sigma, size=size)
-            values = (values - values.min()) / (values.max() - values.min())  # Normalize to [0, 1]
-            indices = (values * num_categories).astype(int)
+            samples = rng.lognormal(mean=mean, sigma=sigma, size=size)
+            samples = (samples - samples.min()) / (samples.max() - samples.min())  # Normalize to [0, 1]
+            indices = (samples * num_categories).astype(int)
             indices = np.clip(indices, 0, num_categories - 1)
         
         else:
-            raise ValueError(f"Unsupported distribution type: {dist_type}")
+            raise ValueError(f"Unsupported distribution type in gen_rand_categories: {dist_type}")
     else:
         indices = rng.choice(len(categories), size=size, p=p)
+        print(f'indices=${indices}')
 
     return np_categories[indices]
 
 
 def gen_rand_timestamps(
-    start: np.datetime64, range_in_days: int, size: int, dtype: str = "datetime64[ms]"
+    start: np.datetime64, 
+    range_in_days: int, 
+    size: int, 
+    dtype: str = "datetime64[ms]", 
+    dist: Dist = None
 ) -> np.ndarray:
     start = np.datetime64(start)
     base = np.full(size, start)
-    offset = rng.integers(0, range_in_days, size)
-    offset = offset.astype("timedelta64[D]")
-    return (base + offset).astype("datetime64[ms]")
+    
+    if dist is None:
+        offset = rng.integers(0, range_in_days, size)
+        offset = offset.astype("timedelta64[D]")
+        return (base + offset).astype(dtype)
+
+    dist_type = dist["type"]
+
+    if dist_type == "normal":
+        samples = rng.normal(loc=0, scale=1, size=size)
+        offset = minmax_scaler(samples, low=0, high=range_in_days).astype("timedelta64[D]")
+        # offset = np.interp(samples, (samples.min(), samples.max()), (0, range_in_days)).astype("timedelta64[D]")  # This is slightly faster!
+        return (base + offset).astype(dtype)
+    if dist_type == "power":
+        samples = rng.power(dist["a"], size=size)
+        offset = minmax_scaler(samples, low=0, high=range_in_days).astype("timedelta64[D]")
+        # offset = np.interp(samples, (samples.min(), samples.max()), (0, range_in_days)).astype("timedelta64[D]")  # This is slightly faster!
+        return (base + offset).astype(dtype)
+    else:
+        raise ValueError(f"Unsupported distribution type in gen_rand_integers: {dist_type}")
 
 
 # -----------------------------------------------------
