@@ -1,4 +1,5 @@
 from typing import get_args
+import numpy as np  # type: ignore
 import pyarrow as pa  # type: ignore
 import duckdb
 from mimesis import Generic
@@ -37,3 +38,7 @@ def is_valid_field_type(s: str) -> bool:
 
 def is_valid_target(t: str) -> bool:
     return t in get_args(Target)
+
+
+def minmax_scaler(samples: np.ndarray, low: int | float, high: int | float) -> np.ndarray:
+    return (samples - samples.min()) / (samples.max() - samples.min()) * (high - low) + low
