@@ -129,7 +129,6 @@ def gen_rand_categories(
             raise ValueError(f"Unsupported distribution type in gen_rand_categories: {dist_type}")
     else:
         indices = rng.choice(len(categories), size=size, p=p)
-        print(f'indices=${indices}')
 
     return np_categories[indices]
 
