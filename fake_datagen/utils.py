@@ -3,7 +3,7 @@ import pyarrow as pa  # type: ignore
 import duckdb
 from mimesis import Generic
 from mimesis.locales import Locale
-from global_types import Schema, FieldType, Table, Target  # type: ignore
+from type_defs import Schema, FieldType, Table, Target  # type: ignore
 
 
 mim = Generic(locale=Locale.EN)

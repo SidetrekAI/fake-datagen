@@ -1,4 +1,4 @@
-from global_types import Table  # type: ignore
+from type_defs import Table  # type: ignore
 from utils import mim  # type: ignore
 
 
@@ -12,7 +12,10 @@ def get_ex_tables(num_records: int) -> list[Table]:
             "num_records": num_records,
             "schema": [
                 {"name": "order_id", "type": "id"},
-                {"name": "created_at", "type": "timestamp", "start": "2022-01-01", "range_in_days": 365 * 2},
+                {"name": "created_at_uniform", "type": "timestamp", "start": "2022-01-01", "range_in_days": 365 * 2},
+                {"name": "created_at_normal", "type": "timestamp", "start": "2022-01-01", "range_in_days": 365 * 2},
+                {"name": "created_at_positive", "type": "timestamp", "start": "2022-01-01", "range_in_days": 365 * 2},
+                {"name": "created_at_negative", "type": "timestamp", "start": "2022-01-01", "range_in_days": 365 * 2},
                 {"name": "qty", "type": "int", "low": 1, "high": 10},
                 {"name": "product_id", "type": "id", "fkey": {"table": "products", "id_field": "id"}},
                 {"name": "customer_id", "type": "id", "fkey": {"table": "customers", "id_field": "id"}},
@@ -36,11 +39,13 @@ def get_ex_tables(num_records: int) -> list[Table]:
                     "name": "payment_method",
                     "type": "category",
                     "categories": ["credit_card", "debit_card", "paypal", "cash"],
+                    "dist": {"type": "beta", "a": 2.0, "b": 5.0},
                 },
                 {
                     "name": "traffic_source",
                     "type": "category",
                     "categories": ["Search", "Direct", "Email", "Social", "PPC"],
+                    "dist": {"type": "normal", "loc": 0.5, "scale": 0.2},
                 },
                 {
                     "name": "referrer",
@@ -72,6 +77,7 @@ def get_ex_tables(num_records: int) -> list[Table]:
                         "Sports & Outdoor",
                         "Office Supply",
                     ],
+                    "dist": {"type": "uniform", "loc": 0.0, "scale": 1.0},
                 },
                 {"name": "price", "type": "int", "low": 500, "high": 20000},
                 {"name": "description", "type": "mimesis", "mimesis_provider_fn": mim.text.title},

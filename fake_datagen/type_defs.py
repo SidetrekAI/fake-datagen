@@ -1,4 +1,40 @@
-from typing import TypedDict, Optional, Literal, Callable
+from typing import TypedDict, Optional, Literal, Callable, Union
+
+# Define the types for the configuration file
+class NormalDist(TypedDict, total=False):
+    type: Literal["normal"]
+    loc: float
+    scale: float
+
+class BetaDist(TypedDict, total=False):
+    type: Literal["beta"]
+    a: float
+    b: float
+
+class GeometricDist(TypedDict, total=False):
+    type: Literal["geometric"]
+    prob: float
+
+class ExponentialDist(TypedDict, total=False):
+    type: Literal["exponential"]
+    scale: float
+
+class UniformDist(TypedDict, total=False):
+    type: Literal["uniform"]
+    low: float
+    high: float
+
+class PoissonDist(TypedDict, total=False):
+    type: Literal["poisson"]
+    lam: float
+
+class LogNormalDist(TypedDict, total=False):
+    type: Literal["lognormal"]
+    mean: float
+    sigma: float
+
+Dist = Union[NormalDist, BetaDist, GeometricDist, ExponentialDist, UniformDist, PoissonDist, LogNormalDist]
+
 
 
 class Fkey(TypedDict):
