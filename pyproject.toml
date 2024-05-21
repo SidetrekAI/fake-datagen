@@ -20,6 +20,7 @@ duckdb = "^0.10.2"
 mimesis = "^16.0.0"
 treelib = "^1.7.0"
 matplotlib = "^3.9.0"
+pandas = "^2.2.2"
 
 [build-system]
 requires = ["poetry-core"]

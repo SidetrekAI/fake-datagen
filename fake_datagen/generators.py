@@ -1,5 +1,5 @@
 from typing import Optional, Callable, List
-import numpy as np
+import numpy as np # type: ignore
 import pyarrow as pa  # type: ignore
 import pyarrow.parquet as pq  # type: ignore
 import pyarrow.csv as pcsv  # type: ignore
@@ -220,7 +220,7 @@ def gen_rand_pa_table(table_name: str, tables: list[Table]) -> pa.Table:
             
             low = int(fkey_table_id_field.get("start", 0))
             high = low + int(fkey_table["num_records"])
-            records.append(pa.array(gen_rand_integers(low=low, high=high, size=num_records)))
+            records.append(pa.array(gen_rand_integers(low=low, high=high, size=num_records, dist=field.get("dist", None))))
         else:
             if field["type"] == "id":
                 records.append(pa.array(gen_ids(num_records, field.get("start", 0))))
@@ -233,7 +233,7 @@ def gen_rand_pa_table(table_name: str, tables: list[Table]) -> pa.Table:
             elif field["type"] == "int":
                 if "low" not in field or "high" not in field:
                     raise ValueError("low and high must be provided for int fields")
-                records.append(pa.array(gen_rand_integers(field["low"], field["high"], num_records)))
+                records.append(pa.array(gen_rand_integers(field["low"], field["high"], num_records, dist=field.get("dist", None))))
 
             elif field["type"] == "str":
                 records.append(pa.array(gen_rand_strs(num_records)))
@@ -248,7 +248,7 @@ def gen_rand_pa_table(table_name: str, tables: list[Table]) -> pa.Table:
             elif field["type"] == "timestamp":
                 if "start" not in field or "range_in_days" not in field:
                     raise ValueError("start and range_in_days must be provided for timestamp fields")
-                records.append(pa.array(gen_rand_timestamps(field["start"], field["range_in_days"], num_records)))
+                records.append(pa.array(gen_rand_timestamps(field["start"], field["range_in_days"], num_records, dist=field.get("dist", None))))
 
             elif field["type"] == "mimesis":
                 if "mimesis_provider_fn" not in field:
